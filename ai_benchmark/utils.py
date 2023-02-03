@@ -277,8 +277,9 @@ def printTestResults(prefix, batch_size, dimensions, mean, std, verbose):
 
 def printIntro():
 
-    print("\n>>   AI-Benchmark-v.0.1.2   ")
-    print(">>   Let the AI Games begin..\n")
+    print("\n>>   AI-Benchmark-v.1.0.0   ")
+    print(">>   Modified for RockSat-C 2022-2023   ")
+    print(">>   Let's get toasty :D\n")
 
     # print("\n>>   𝓐𝓘-𝓑𝓮𝓷𝓬𝓱𝓶𝓪𝓻𝓴-𝓿.0.1.2   ")
     # print(">>   𝐿𝑒𝓉 𝓉𝒽𝑒 𝒜𝐼 𝒢𝒶𝓂𝑒𝓈 𝒷𝑒𝑔𝒾𝓃..\n")
@@ -434,13 +435,13 @@ def getCudaInfo():
 
 def printTestStart():
 
-    time.sleep(1)
+    time.sleep(0.1)
     print("\nThe benchmark is running...")
-    time.sleep(1.7)
+    time.sleep(0.1)
     print("The tests might take up to 20 minutes")
-    time.sleep(1.7)
+    time.sleep(0.1)
     print("Please don't interrupt the script")
-    time.sleep(2)
+    time.sleep(0.1)
 
 
 def printScores(testInfo, public_results):
@@ -496,7 +497,7 @@ def printScores(testInfo, public_results):
             print("\nDevice Training Score: " + str(testInfo.results.training_score) + "\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
-    if testInfo._type == "micro":
+    if testInfo._type == "micro" or testInfo._type == "nano":
 
         inference_score = geometrical_mean(testInfo.results.results_inference_norm)
         testInfo.results.inference_score = int(inference_score * c_inference)
@@ -518,7 +519,7 @@ def geometrical_mean(results):
     return results.prod() ** (1.0 / len(results))
 
 
-def run_tests(training, inference, micro, verbose, use_CPU, precision, _type, start_dir, batch_mul):
+def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _type, start_dir, batch_mul):
 
     testInfo = TestInfo(_type, precision, use_CPU, verbose)
 
@@ -551,7 +552,7 @@ def run_tests(training, inference, micro, verbose, use_CPU, precision, _type, st
 
     for test in benchmark_tests:
 
-        if verbose > 0 and not (micro and len(test.micro) == 0):
+        if verbose > 0 and not ((micro and len(test.micro) == 0) or (nano and len(test.nano) == 0)):
             print("\n" + str(test.id) + "/" + str(len(benchmark_tests)) + ". " + test.model + "\n")
         sub_id = 1
 
@@ -571,9 +572,9 @@ def run_tests(training, inference, micro, verbose, use_CPU, precision, _type, st
                 if test.type == "nlp-text":
                     sess.run(tf.tables_initializer())
 
-            if inference or micro:
+            if inference or micro or nano:
 
-                for subTest in (test.inference if inference else test.micro):
+                for subTest in (test.inference if inference else test.micro if micro else test.nano):
 
                     time_test_started = getTimeSeconds()
                     inference_times = []

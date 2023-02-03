@@ -15,7 +15,7 @@ class AIBenchmark:
         if verbose_level > 0:
             printIntro()
 
-        np.warnings.filterwarnings('ignore')
+        #np.warnings.filterwarnings('ignore') # NumPy seems to have discarded this method.
 
         try:
 
@@ -60,20 +60,24 @@ class AIBenchmark:
             self.use_CPU = True
 
     def run(self, precision="normal", batch_mul=1):
-        return run_tests(training=True, inference=True, micro=False, verbose=self.verbose,
+        return run_tests(training=True, inference=True, micro=False, nano=False, verbose=self.verbose,
                          use_CPU=self.use_CPU, precision=precision, _type="full", start_dir=self.cwd, batch_mul=batch_mul)
 
     def run_inference(self, precision="normal", batch_mul=1):
-        return run_tests(training=False, inference=True, micro=False, verbose=self.verbose,
+        return run_tests(training=False, inference=True, micro=False, nano=False, verbose=self.verbose,
                          use_CPU=self.use_CPU, precision=precision, _type="inference", start_dir=self.cwd, batch_mul=batch_mul)
 
     def run_training(self, precision="normal", batch_mul=1):
-        return run_tests(training=True, inference=False, micro=False, verbose=self.verbose,
+        return run_tests(training=True, inference=False, micro=False, nano=False, verbose=self.verbose,
                          use_CPU=self.use_CPU, precision=precision, _type="training", start_dir=self.cwd, batch_mul=batch_mul)
 
     def run_micro(self, precision="normal", batch_mul=1):
-        return run_tests(training=False, inference=False, micro=True, verbose=self.verbose,
+        return run_tests(training=False, inference=False, micro=True, nano=False, verbose=self.verbose,
                          use_CPU=self.use_CPU, precision=precision, _type="micro", start_dir=self.cwd, batch_mul=batch_mul)
+
+    def run_nano(self, precision="normal", batch_mul=1):
+        return run_tests(training=False, inference=False, micro=False, nano=True, verbose=self.verbose,
+                         use_CPU=self.use_CPU, precision=precision, _type="nano", start_dir=self.cwd, batch_mul=batch_mul)
 
 
 if __name__ == "__main__":
