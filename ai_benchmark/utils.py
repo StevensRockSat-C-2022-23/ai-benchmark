@@ -36,6 +36,8 @@ class BenchmarkResults:
         self.training_score = 0
 
         self.ai_score = 0
+        
+        self.total_time = 0
 
 
 class Result:
@@ -253,7 +255,7 @@ def computeStats(results):
     return np.mean(results), np.std(results)
 
 
-def printTestResults(prefix, batch_size, dimensions, mean, std, verbose):
+def printTestResults(prefix, batch_size, dimensions, mean, std, total_time, verbose):
 
     if verbose > 1:
         prefix = "\n" + prefix
@@ -442,6 +444,7 @@ def printTestStart():
     time.sleep(0.1)
     print("Please don't interrupt the script")
     time.sleep(0.1)
+    print("Start time: " + str(getTimeSeconds()) + "s")
 
 
 def printScores(testInfo, public_results):
@@ -468,7 +471,8 @@ def printScores(testInfo, public_results):
         if testInfo.verbose_level > 0:
             print("\nDevice Inference Score: " + str(testInfo.results.inference_score))
             print("Device Training Score: " + str(testInfo.results.training_score))
-            print("Device AI Score: " + str(testInfo.results.ai_score) + "\n")
+            print("Device AI Score: " + str(testInfo.results.ai_score))
+            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     if testInfo._type == "inference":
@@ -481,7 +485,8 @@ def printScores(testInfo, public_results):
         update_info("scores", testInfo)
 
         if testInfo.verbose_level > 0:
-            print("\nDevice Inference Score: " + str(testInfo.results.inference_score) + "\n")
+            print("\nDevice Inference Score: " + str(testInfo.results.inference_score))
+            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     if testInfo._type == "training":
@@ -494,20 +499,22 @@ def printScores(testInfo, public_results):
         update_info("scores", testInfo)
 
         if testInfo.verbose_level > 0:
-            print("\nDevice Training Score: " + str(testInfo.results.training_score) + "\n")
+            print("\nDevice Training Score: " + str(testInfo.results.training_score))
+            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     if testInfo._type == "micro" or testInfo._type == "nano":
 
         inference_score = geometrical_mean(testInfo.results.results_inference_norm)
-        testInfo.results.inference_score = int(inference_score * c_inference)
+        testInfo.results.inference_score = inference_score * c_inference # Make this not an integer. More precision :D
 
         public_results.inference_score = testInfo.results.inference_score
 
         update_info("scores", testInfo)
 
         if testInfo.verbose_level > 0:
-            print("\nDevice Inference Score: " + str(testInfo.results.inference_score) + "\n")
+            print("\nDevice Inference Score: " + str(testInfo.results.inference_score))
+            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     return public_results
@@ -595,16 +602,19 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
                                 print("Inference Time: " + str(inference_time) + " ms")
 
                     time_mean, time_std = computeStats(inference_times)
+                    
+                    test_time = getTimeSeconds() - time_test_started
 
                     public_id = "%d.%d" % (test.id, sub_id)
                     public_results.test_results[public_id] = Result(time_mean, time_std)
 
                     benchmark_results.results_inference.append(time_mean)
                     benchmark_results.results_inference_norm.append(float(subTest.ref_time) / time_mean)
+                    benchmark_results.total_time += test_time
 
                     if verbose > 0:
                         prefix = "%d.%d - inference" % (test.id, sub_id)
-                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, verbose)
+                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, test_time, verbose)
                         sub_id += 1
 
             if training:
@@ -650,16 +660,19 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
                                     print("Training Time: " + str(training_time) + " ms")
 
                     time_mean, time_std = computeStats(training_times)
+                    
+                    test_time = getTimeSeconds() - time_test_started
 
                     public_id = "%d.%d" % (test.id, sub_id)
                     public_results.test_results[public_id] = Result(time_mean, time_std)
 
                     benchmark_results.results_training.append(time_mean)
                     benchmark_results.results_training_norm.append(float(subTest.ref_time) / time_mean)
+                    benchmark_results.total_time += test_time
 
                     if verbose > 0:
                         prefix = "%d.%d - training " % (test.id, sub_id)
-                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, verbose)
+                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, test_time, verbose)
                         sub_id += 1
 
         sess.close()
