@@ -555,8 +555,8 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
         else:
             config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
-        config.gpu_options.per_process_gpu_memory_fraction = 0.4
-        config.gpu_options.visible_device_list= '0,1'
+        config.gpu_options.per_process_gpu_memory_fraction = 0.6
+        config.gpu_options.visible_device_list= '0'
         print("##### Config Done")
 
     for test in benchmark_tests:
