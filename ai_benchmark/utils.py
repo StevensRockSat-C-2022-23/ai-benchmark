@@ -262,13 +262,13 @@ def printTestResults(prefix, batch_size, dimensions, mean, std, total_time, verb
 
     if std > 1 and mean > 100:
 
-        prt_str = "%s | batch=%d, size=%dx%d: %.d ± %.d ms" % (prefix, batch_size, dimensions[1], dimensions[2],
-                                                                   round(mean), round(std))
+        prt_str = "%s | batch=%d, size=%dx%d: %.d ± %.d ms, %.1f" % (prefix, batch_size, dimensions[1], dimensions[2],
+                                                                   round(mean), round(std), total_time)
 
     else:
 
-        prt_str = "%s | batch=%d, size=%dx%d: %.1f ± %.1f ms" % (prefix, batch_size, dimensions[1],
-                                                                     dimensions[2], mean, std)
+        prt_str = "%s | batch=%d, size=%dx%d: %.1f ± %.1f ms, %.1f" % (prefix, batch_size, dimensions[1],
+                                                                     dimensions[2], mean, std, total_time)
 
     try:
         print(prt_str)
@@ -554,6 +554,8 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
             config = tf.compat.v1.ConfigProto()
         else:
             config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        config.gpu_options.per_process_gpu_memory_fraction = 0.4
         config.gpu_options.visible_device_list= '0,1'
         print("##### Config Done")
 
@@ -584,6 +586,7 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
                 for subTest in (test.inference if inference else test.micro if micro else test.nano):
 
                     time_test_started = getTimeSeconds()
+                    time_test_started_ms = getTimeMillis()
                     inference_times = []
 
                     for i in range(subTest.iterations * iter_multiplier):
@@ -603,7 +606,7 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
 
                     time_mean, time_std = computeStats(inference_times)
                     
-                    test_time = getTimeSeconds() - time_test_started
+                    test_time = getTimeMillis() - time_test_started_ms
 
                     public_id = "%d.%d" % (test.id, sub_id)
                     public_results.test_results[public_id] = Result(time_mean, time_std)
@@ -637,6 +640,7 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
                         train_step = train_vars_[1]
 
                     time_test_started = getTimeSeconds()
+                    time_test_started_ms = getTimeMillis()
                     training_times = []
 
                     for i in range(subTest.iterations * iter_multiplier):
@@ -661,7 +665,7 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
 
                     time_mean, time_std = computeStats(training_times)
                     
-                    test_time = getTimeSeconds() - time_test_started
+                    test_time = getTimeMillis() - time_test_started_ms
 
                     public_id = "%d.%d" % (test.id, sub_id)
                     public_results.test_results[public_id] = Result(time_mean, time_std)
