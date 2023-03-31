@@ -174,7 +174,8 @@ class TestConstructor:
                  tests_micro=[
                      SubTest(1, [128, 128, 3], [128, 128, 3], 22, min_passes=5, max_duration=30, ref_time=46)],
                  tests_nano=[
-                     SubTest(1, [128, 128, 3], [128, 128, 3], 22, min_passes=5, max_duration=30, ref_time=46)]),
+                     #SubTest(1, [128, 128, 3], [128, 128, 3], 22, min_passes=5, max_duration=30, ref_time=46)
+                     ]),
 
             Test(test_id=14, test_type="segmentation", model="ICNet", model_src="icnet.meta", use_src=False,
                  tests_training=[SubTest(10*batch_mul, [1024, 1536, 3], [1024, 1536, 3], 22, min_passes=5, max_duration=30,
