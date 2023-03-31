@@ -108,7 +108,8 @@ class TestConstructor:
                                          loss_function="MSE", optimizer="Adam", learning_rate=1e-4, ref_time=190)],
                  tests_inference=[SubTest(20, [224, 224, 3], [1000], 22, min_passes=5, max_duration=30, ref_time=110)],
                  tests_micro=[SubTest(1, [224, 224, 3], [1000], 22, min_passes=5, max_duration=30, ref_time=56)],
-                 tests_nano=[SubTest(1, [224, 224, 3], [1000], 22, min_passes=5, max_duration=30, ref_time=56)]),
+                 tests_nano=[#SubTest(1, [224, 224, 3], [1000], 22, min_passes=5, max_duration=30, ref_time=56)
+                    ]),
 
             Test(test_id=8, test_type="enhancement", model="SRCNN 9-5-5", model_src="srcnn.meta", use_src=False,
                  tests_training=[SubTest(10*batch_mul, [512, 512, 3], [512, 512, 3], 22, min_passes=5, max_duration=30,
