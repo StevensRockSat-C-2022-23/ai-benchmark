@@ -38,6 +38,7 @@ class BenchmarkResults:
         self.ai_score = 0
         
         self.total_time = 0
+        self.load_time = 0
 
 
 class Result:
@@ -255,20 +256,20 @@ def computeStats(results):
     return np.mean(results), np.std(results)
 
 
-def printTestResults(prefix, batch_size, dimensions, mean, std, total_time, verbose):
+def printTestResults(prefix, batch_size, dimensions, mean, std, total_time, load_time, verbose):
 
     if verbose > 1:
         prefix = "\n" + prefix
 
     if std > 1 and mean > 100:
 
-        prt_str = "%s | batch=%d, size=%dx%d: %.d ± %.d ms, %.1f" % (prefix, batch_size, dimensions[1], dimensions[2],
-                                                                   round(mean), round(std), total_time)
+        prt_str = "%s | batch=%d, size=%dx%d: %.d ± %.1f ms, runtime: %.1f ms, loadtime: %.1f ms" % (prefix, batch_size, dimensions[1], dimensions[2],
+                                                                   round(mean), std, total_time, load_time)
 
     else:
 
-        prt_str = "%s | batch=%d, size=%dx%d: %.1f ± %.1f ms, %.1f" % (prefix, batch_size, dimensions[1],
-                                                                     dimensions[2], mean, std, total_time)
+        prt_str = "%s | batch=%d, size=%dx%d: %.1f ± %.1f ms, runtime: %.1f ms, loadtime: %.1f ms" % (prefix, batch_size, dimensions[1],
+                                                                     dimensions[2], mean, std, total_time, load_time)
 
     try:
         print(prt_str)
@@ -282,6 +283,7 @@ def printIntro():
     print("\n>>   AI-Benchmark-v.1.0.0   ")
     print(">>   Modified for RockSat-C 2022-2023   ")
     print(">>   Let's get toasty :D\n")
+    print(">>   Start time:\t" + getTimeSeconds() + " s")
 
     # print("\n>>   𝓐𝓘-𝓑𝓮𝓷𝓬𝓱𝓶𝓪𝓻𝓴-𝓿.0.1.2   ")
     # print(">>   𝐿𝑒𝓉 𝓉𝒽𝑒 𝒜𝐼 𝒢𝒶𝓂𝑒𝓈 𝒷𝑒𝑔𝒾𝓃..\n")
@@ -472,7 +474,7 @@ def printScores(testInfo, public_results):
             print("\nDevice Inference Score: " + str(testInfo.results.inference_score))
             print("Device Training Score: " + str(testInfo.results.training_score))
             print("Device AI Score: " + str(testInfo.results.ai_score))
-            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
+            print("Total Time: " + str(testInfo.results.total_time) + " ms, Load Time: " + str(testInfo.results.load_time) + " ms, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     if testInfo._type == "inference":
@@ -486,7 +488,7 @@ def printScores(testInfo, public_results):
 
         if testInfo.verbose_level > 0:
             print("\nDevice Inference Score: " + str(testInfo.results.inference_score))
-            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
+            print("Total Time: " + str(testInfo.results.total_time) + " ms, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     if testInfo._type == "training":
@@ -500,7 +502,7 @@ def printScores(testInfo, public_results):
 
         if testInfo.verbose_level > 0:
             print("\nDevice Training Score: " + str(testInfo.results.training_score))
-            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
+            print("Total Time: " + str(testInfo.results.total_time) + " ms, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     if testInfo._type == "micro" or testInfo._type == "nano":
@@ -514,7 +516,7 @@ def printScores(testInfo, public_results):
 
         if testInfo.verbose_level > 0:
             print("\nDevice Inference Score: " + str(testInfo.results.inference_score))
-            print("Total Time: " + str(testInfo.results.total_time) + "s, Test End: " + str(getTimeSeconds()) + "s\n")
+            print("Total Time: " + str(testInfo.results.total_time) + " ms, Test End: " + str(getTimeSeconds()) + "s\n")
             print("For more information and results, please visit http://ai-benchmark.com/alpha\n")
 
     return public_results
@@ -565,6 +567,8 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
             print("\n" + str(test.id) + "/" + str(len(benchmark_tests)) + ". " + test.model + "\n")
         sub_id = 1
 
+        time_load_started_ms = getTimeMillis()
+
         tf.compat.v1.reset_default_graph() if testInfo.tf_ver_2 else tf.reset_default_graph()
         session = tf.compat.v1.Session(config=config) if testInfo.tf_ver_2 else tf.Session(config=config)
 
@@ -580,6 +584,9 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
                 tf.global_variables_initializer().run()
                 if test.type == "nlp-text":
                     sess.run(tf.tables_initializer())
+
+            load_time = getTimeMillis() - time_load_started_ms
+            benchmark_results.load_time += load_time
 
             if inference or micro or nano:
 
@@ -617,7 +624,7 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
 
                     if verbose > 0:
                         prefix = "%d.%d - inference" % (test.id, sub_id)
-                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, test_time, verbose)
+                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, test_time, load_time, verbose)
                         sub_id += 1
 
             if training:
@@ -676,7 +683,7 @@ def run_tests(training, inference, micro, nano, verbose, use_CPU, precision, _ty
 
                     if verbose > 0:
                         prefix = "%d.%d - training " % (test.id, sub_id)
-                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, test_time, verbose)
+                        printTestResults(prefix, subTest.batch_size, subTest.getInputDims(), time_mean, time_std, test_time, load_time, verbose)
                         sub_id += 1
 
         sess.close()
