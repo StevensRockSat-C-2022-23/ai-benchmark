@@ -283,7 +283,7 @@ def printIntro():
     print("\n>>   AI-Benchmark-v.1.0.0   ")
     print(">>   Modified for RockSat-C 2022-2023   ")
     print(">>   Let's get toasty :D\n")
-    print(">>   Start time:\t" + getTimeSeconds() + " s")
+    print(">>   Start time:\t" + str(getTimeSeconds()) + " s")
 
     # print("\n>>   𝓐𝓘-𝓑𝓮𝓷𝓬𝓱𝓶𝓪𝓻𝓴-𝓿.0.1.2   ")
     # print(">>   𝐿𝑒𝓉 𝓉𝒽𝑒 𝒜𝐼 𝒢𝒶𝓂𝑒𝓈 𝒷𝑒𝑔𝒾𝓃..\n")
